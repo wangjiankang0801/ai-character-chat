@@ -336,7 +336,12 @@ const PT=['温柔','高冷','幽默','毒舌','傲娇','元气','沉稳','活泼
 const SS=[{v:'自然的',l:'日常口语'},{v:'正式的',l:'正式文雅'},{v:'幽默的',l:'幽默风趣'},{v:'古风的',l:'古风诗意'},{v:'萌系的',l:'萌系可爱'}];
 
 function loadEditor(){
-  const c=document.getElementById('charEditor');if(!S.currentCharId){c.innerHTML='';return}
+  const c=document.getElementById('charEditor');
+  if(S.newMode){
+    c.innerHTML="<div><label>角色名称</label><input id=\"eName\" value=\"新角色\"></div><div><label>角色设定</label><div style=\"display:flex;gap:6px;margin-bottom:6px\"><input id=\"aiIdea\" placeholder=\"用一句话描述你想要的角色...\" style=\"flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:13px;outline:none\"><button onclick=\"aiGenerate()\" style=\"background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;white-space:nowrap\">AI 生成</button></div><textarea id=\"ePrompt\" rows=\"6\" placeholder=\"或手动编写角色设定...\"></textarea><div style=\"font-size:11px;color:var(--text2);margin-top:4px\">支持中文，AI会根据你的描述生成完整人设</div></div><div><label>开场白</label><textarea id=\"eGreet\" rows=\"2\">你好！</textarea></div><div><label>创造力</label><input id=\"eTemp\" value=\"0.8\" type=\"number\" step=\".1\" min=\"0\" max=\"2\"><div class=\"hint\" style=\"font-size:11px;color:var(--text2);margin-top:2px\">0.7稳重 · 0.9平衡 · 1.2创意</div></div><button class=\"save-btn\" onclick=\"saveCharSettings()\">创建角色</button>";
+    return
+  }
+  if(!S.currentCharId){c.innerHTML='';return}
   const ch=S.characters.find(x=>x.id===S.currentCharId);if(!ch)return
   c.innerHTML=`<div><label>角色名称</label><input id="eName" value="${esc(ch.name)}"></div>
     <div><label>角色设定</label>
