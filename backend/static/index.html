@@ -207,6 +207,8 @@ function showScreen(n){
   document.getElementById('voiceModeBtn').style.display=s?'block':'none';
   if(n==='char-list')loadCharacters();
 }
+if(n!=='char-detail'&&S.newMode)S.newMode=false;
+
 
 function showCharDetail(id){
   S.currentCharId=id;S.currentConvId=null;S.pendingImages=[];
@@ -233,16 +235,17 @@ function renderCharList(){
     </div>`}).join('');
 }
 async function deleteChar(id){await API.del('/api/characters/'+id);if(S.currentCharId===id)showScreen('char-list');loadCharacters();showToast('已删除')}
-async function newCharacter(){const d=await API.post('/api/characters',{name:'新角色',system_prompt:'你是一个友善的AI助手。',greeting:'你好！'});S.characters.push(d);showCharDetail(d.id)}
-
-async function loadChat(){
-  const c=document.getElementById('chatMessages');
-  if(!S.currentCharId){c.innerHTML='<div class="empty-state">选择一个角色开始聊天</div>';return}
-  try{
-    const convs=await API.get('/api/chat/conversations?character_id='+S.currentCharId);
-    if(convs.length){const v=await API.get('/api/chat/conversations/'+convs[0].id);S.currentConvId=v.id;renderMsgs(v.messages||[])}
-    else{const ch=S.characters.find(x=>x.id===S.currentCharId);renderMsgs(ch&&ch.greeting?[{role:'assistant',content:ch.greeting,id:'g',created_at:new Date().toISOString()}]:[])}
-  }catch{c.innerHTML='<div class="empty-state">加载失败</div>'}
+function newCharacter(){
+  S.newMode=true;
+  S.currentCharId=null;
+  showScreen('char-detail');
+  document.getElementById('headerTitle').textContent='新建角色';
+  document.getElementById('backBtn').style.display='flex';
+  document.getElementById('addBtn').style.display='none';
+  document.getElementById('ttsToggleBtn').style.display='none';
+  document.getElementById('voiceModeBtn').style.display='none';
+  switchTab('edit');
+  loadEditor();
 }
 function renderMsgs(msgs){
   const c=document.getElementById('chatMessages');
@@ -337,7 +340,7 @@ function loadEditor(){
     <div><label>创造力</label><input id="eTemp" value="${esc(ch.temperature)}" type="number" step=".1" min="0" max="2">
       <div class="hint" style="font-size:11px;color:var(--text2);margin-top:2px">0.7稳重 · 0.9平衡 · 1.2创意</div>
     </div>
-    <button class="save-btn" onclick="saveCharSettings()">保存设定</button>
+    <button class="save-btn" onclick="saveCharSettings()">${S.newMode?'创建角色':'保存设定'}</button>
     <button class="delete-char-btn" onclick="showConfirm('删除角色？','所有对话和记忆将被删除。',()=>deleteChar(ch.id))">删除角色</button>`;
 }
 
@@ -355,17 +358,30 @@ async function aiGenerate(){
   btn.disabled=false;btn.textContent='AI 生成';
 }
 function saveCharSettings(){
-  if(!S.currentCharId)return;
-  API.put('/api/characters/'+S.currentCharId,{
-    name:document.getElementById('eName').value,
-    system_prompt:document.getElementById('ePrompt').value,
-    greeting:document.getElementById('eGreet').value,
+  if(!S.currentCharId&&!S.newMode)return;
+  var data={
+    name:document.getElementById('eName').value||'新角色',
+    system_prompt:document.getElementById('ePrompt').value||'你是一个友善的AI助手。',
+    greeting:document.getElementById('eGreet').value||'你好！',
     temperature:parseFloat(document.getElementById('eTemp').value)||0.8
-  });
-  document.getElementById('headerTitle').textContent=document.getElementById('eName').value;
-  showToast('保存成功');
+  };
+  var self=this;
+  (async function(){
+    try{
+      if(S.newMode){
+        var d=await API.post('/api/characters',data);
+        S.newMode=false;
+        S.currentCharId=d.id;
+        S.characters.push(d);
+      }else{
+        await API.put('/api/characters/'+S.currentCharId,data);
+      }
+      document.getElementById('headerTitle').textContent=data.name;
+      showToast('保存成功');
+      if(S.currentCharId)loadList();
+    }catch(e){showToast('保存失败')}
+  })();
 }
-
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 function showToast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
 loadCharacters();
