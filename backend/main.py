@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from database import init_db
-from routes import characters, chat, traits, upload, tts
+from routes import characters, chat, traits, upload, tts, generate
 
 app = FastAPI(title="AI 角色聊天", version="2.0.0")
 
@@ -15,6 +15,7 @@ app.include_router(characters.router)
 app.include_router(chat.router)
 app.include_router(traits.router)
 app.include_router(upload.router)
+app.include_router(generate.router)
 app.include_router(tts.router)
 
 static_dir = Path(__file__).parent / "static"
