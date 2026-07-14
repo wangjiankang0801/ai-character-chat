@@ -128,7 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro","Helvetica Neue",sans
 .modal-actions .vcl{background:var(--surface2);color:var(--text);border:1px solid var(--border)}</style>
 </head>
 <body><div class="app" id="app">
-  <div id="header"><button class="hback" id="hback" onclick="showScr('list')">←</button><div class="htitle" id="htitle">AI 角色</div><button class="hadd" id="hadd" onclick="newCharacter()">+</button><button class="hrbtn" id="ttsBtn" onclick="toggleTTS()">朗读</button><button class="hrbtn" id="voiceBtn" onclick="toggleVoiceMode()">U0001f3a4</button></div>
+  <div id="header"><button class="hback" id="hback" onclick="showScr('list')">←</button><div class="htitle" id="htitle">AI 角色</div><button class="hadd" id="hadd" onclick="newCharacter()">+</button><button class="hrbtn" id="ttsBtn" onclick="toggleTTS()">朗读</button><button class="hrbtn" id="voiceBtn" onclick="toggleVoiceMode()">🎤</button></div>
   <div class="scr active" id="s-list"><div class="chat-list" id="chatList"></div></div>
   <div class="scr" id="s-detail">
     <div class="dtabs" id="detailTabs">
@@ -192,7 +192,7 @@ function confirm(t,b,on){document.getElementById('modalTitle').textContent=t;doc
 document.getElementById('modalConfirm').onclick=()=>{document.getElementById('confirmModal').classList.remove('show');if(S.cb)S.cb()};
 document.getElementById('modalCancel').onclick=()=>{document.getElementById('confirmModal').classList.remove('show')};
 
-function showScr(n){document.querySelectorAll(".scr").forEach(s=>s.classList.remove("active"));document.getElementById("s-"+n).classList.add("active");var dt=n==="detail";document.getElementById("hback").style.display=dt?"flex":"none";document.getElementById("hadd").style.display=dt?"none":"flex";document.getElementById("htitle").textContent=dt?(S.chars.find(x=>x.id===S.curChar)||{}).name||"AI":"AI \u89d2\u8272";document.getElementById("ttsBtn").style.display=dt?"block":"none";document.getElementById("voiceBtn").style.display=dt?"block":"none";document.getElementById("voiceBtn").textContent=S.vMode?"\U0001f50a":"\U0001f3a4";if(n==="list")loadList();}
+function showScr(n){document.querySelectorAll(".scr").forEach(s=>s.classList.remove("active"));document.getElementById("s-"+n).classList.add("active");var dt=n==="detail";document.getElementById("hback").style.display=dt?"flex":"none";document.getElementById("hadd").style.display=dt?"none":"flex";document.getElementById("htitle").textContent=dt?(S.chars.find(x=>x.id===S.curChar)||{}).name||"AI":"AI \u89d2\u8272";document.getElementById("ttsBtn").style.display=dt?"block":"none";document.getElementById("voiceBtn").style.display=dt?"block":"none";document.getElementById("voiceBtn").textContent=S.vMode?"\🔊":"\🎤";if(n==="list")loadList();}
 
 function openChar(id){
   S.curChar=id;S.curConv=null;S.pendingImg=[];
