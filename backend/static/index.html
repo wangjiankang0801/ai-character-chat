@@ -132,7 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro","Helvetica Neue",sans
 <body><div class="app" id="app">
   <div class="header" id="header">
     <button class="back-btn" id="backBtn" onclick="showScreen('char-list')">←</button>
-    <h1 id="headerTitle">AI 角色聊天</h1><button class="header-btn" id="addBtn" onclick="newCharacter()" style="display:none">+</button>
+    <h1 id="headerTitle">AI 角色聊天</h1><button class="header-btn" id="addBtn" onclick="newCharacter()">+</button>
     <button class="header-btn" id="ttsToggleBtn" style="display:none" onclick="toggleTTS()">朗读</button>
     <button class="header-btn" id="voiceModeBtn" style="display:none" onclick="toggleVoiceMode()">🎤</button>
   </div>
@@ -235,6 +235,17 @@ function renderCharList(){
     </div>`}).join('');
 }
 async function deleteChar(id){await API.del('/api/characters/'+id);if(S.currentCharId===id)showScreen('char-list');loadCharacters();showToast('已删除')}
+
+async function loadChat(){
+  const c=document.getElementById("chatMessages");
+  if(!S.currentCharId){c.innerHTML="<div class=\"empty-state\">选择一个角色开始聊天</div>";return}
+  try{
+    const convs=await API.get("/api/chat/conversations?character_id="+S.currentCharId);
+    if(convs.length){const v=await API.get("/api/chat/conversations/"+convs[0].id);S.currentConvId=v.id;renderMsgs(v.messages||[])}
+    else{const ch=S.characters.find(x=>x.id===S.currentCharId);renderMsgs(ch&&ch.greeting?[{role:"assistant",content:ch.greeting,id:"g",created_at:new Date().toISOString()}]:[])}
+  }catch{c.innerHTML="<div class=\"empty-state\">加载失败</div>"}
+}
+
 function newCharacter(){
   S.newMode=true;
   S.currentCharId=null;
@@ -378,7 +389,7 @@ function saveCharSettings(){
       }
       document.getElementById('headerTitle').textContent=data.name;
       showToast('保存成功');
-      if(S.currentCharId)loadList();
+      if(S.currentCharId)loadCharacters();
     }catch(e){showToast('保存失败')}
   })();
 }
