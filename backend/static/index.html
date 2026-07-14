@@ -129,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro","Helvetica Neue",sans
 </head>
 <body><div class="app" id="app">
   <div class="header" id="header">
-    <button class="back-btn" id="backBtn">←</button>
+    <button class="back-btn" id="backBtn" onclick="showScreen('char-list')"←</button>
     <h1 id="headerTitle">AI 角色聊天</h1>
     <button class="header-btn" id="ttsToggleBtn" style="display:none" onclick="toggleTTS()">朗读</button>
     <button class="header-btn" id="voiceModeBtn" style="display:none" onclick="toggleVoiceMode()">🎤</button>
@@ -292,12 +292,18 @@ function toggleVoiceMode(){S.voiceMode=!S.voiceMode;document.getElementById('voi
 function toggleTTS(){S.ttsEnabled=!S.ttsEnabled;updateTTSToggleBtn();document.getElementById('ttsBar').classList.toggle('show',S.ttsEnabled);showToast(S.ttsEnabled?'朗读已开启':'朗读已关闭')}
 function updateTTSToggleBtn(){const b=document.getElementById('ttsToggleBtn');b.textContent=S.ttsEnabled?'🔊朗读':'朗读';b.className='header-btn'+(S.ttsEnabled?' active':'')}
 
-function speakMsg(id){
+async function speakMsg(id){
   const el=document.getElementById('msg-'+id);if(!el)return;
-  const t=el.textContent.replace(/刚刚|朗读/g,'').trim();if(!t||!('speechSynthesis' in window))return;
+  let txt=el.textContent.replace(/刚刚|朗读/g,'').trim();if(!txt)return;
+  const clean=txt.replace(/[*#`\[\]()>|]/g,'').trim().slice(0,1000);if(!clean)return;
   window.speechSynthesis.cancel();
-  const rate=parseInt(document.getElementById('ttsRate').value)/10,pitch=parseInt(document.getElementById('ttsPitch').value)/10;
-  const clean=t.replace(/[*#`\[\]()>|]/g,'').trim().slice(0,600);if(!clean)return;
+  const rate=parseInt(document.getElementById('ttsRate').value)/10;
+  const pitch=parseInt(document.getElementById('ttsPitch').value)/10;
+  try{
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,rate:rate,pitch:pitch})});
+    if(r.ok){const b=await r.blob();const u=URL.createObjectURL(b);const a=new Audio(u);a.play();a.onended=()=>URL.revokeObjectURL(u);return}
+  }catch{}
+  if(!('speechSynthesis' in window))return;
   const u=new SpeechSynthesisUtterance(clean);u.lang='zh-CN';u.rate=rate;u.pitch=pitch;
   const vs=window.speechSynthesis.getVoices();
   u.voice=vs.find(v=>v.lang.startsWith('zh')&&(v.name.includes('Xiaoxiao')||v.name.includes('Natural')))||vs.find(v=>v.lang.startsWith('zh'));
